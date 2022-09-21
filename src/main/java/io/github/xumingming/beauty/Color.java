@@ -1,4 +1,4 @@
-package org.abei.beauty;
+package io.github.xumingming.beauty;
 
 /**
  * Represents ANSI Color Code.

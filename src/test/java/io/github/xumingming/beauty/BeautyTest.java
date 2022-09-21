@@ -1,14 +1,10 @@
-package org.abei.beauty;
+package io.github.xumingming.beauty;
 
 import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.List;
 
-import static org.abei.beauty.Beauty.barChart;
-import static org.abei.beauty.Beauty.detail;
-import static org.abei.beauty.Beauty.table;
-import static org.abei.beauty.Column.column;
 import static org.junit.Assert.assertEquals;
 
 public class BeautyTest
@@ -16,12 +12,12 @@ public class BeautyTest
     @Test
     public void testTable()
     {
-        String str = table(
+        String str = Beauty.table(
                 persons(),
                 Arrays.asList(
-                        column("Name", (Person p) -> p.getName()),
-                        column("Age", (Person p) -> p.getAge()),
-                        column("Gender", (Person p) -> p.isMale() ? "Male" : "Female")),
+                        Column.column("Name", (Person p) -> p.getName()),
+                        Column.column("Age", (Person p) -> p.getAge()),
+                        Column.column("Gender", (Person p) -> p.isMale() ? "Male" : "Female")),
                 x -> Color.NONE,
                 Color.NONE);
 
@@ -45,12 +41,12 @@ public class BeautyTest
     @Test
     public void testDetail()
     {
-        String str = detail(
+        String str = Beauty.detail(
                 persons().get(0),
                 Arrays.asList(
-                        column("Name", (Person p) -> p.getName()),
-                        column("Age", (Person p) -> p.getAge()),
-                        column("Gender", (Person p) -> p.isMale() ? "Male" : "Female")),
+                        Column.column("Name", (Person p) -> p.getName()),
+                        Column.column("Age", (Person p) -> p.getAge()),
+                        Column.column("Gender", (Person p) -> p.isMale() ? "Male" : "Female")),
                 Color.NONE);
 
         System.out.println(str);
@@ -64,7 +60,7 @@ public class BeautyTest
     @Test
     public void testBarChart()
     {
-        String str = barChart(BarChart.intBarChart(Arrays.asList(
+        String str = Beauty.barChart(BarChart.intBarChart(Arrays.asList(
                 new BarItem<>("Male", persons().stream().mapToInt(x -> x.isMale() ? 1 : 0).sum()),
                 new BarItem<>("Female", persons().stream().mapToInt(x -> x.isMale() ? 0 : 1).sum()))));
 

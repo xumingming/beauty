@@ -1,4 +1,4 @@
-package org.abei.beauty;
+package io.github.xumingming.beauty;
 
 import io.airlift.units.DataSize;
 

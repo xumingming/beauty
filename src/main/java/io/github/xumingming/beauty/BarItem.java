@@ -1,6 +1,6 @@
-package org.abei.beauty;
+package io.github.xumingming.beauty;
 
-import static org.abei.beauty.Utils.repeat;
+import static io.github.xumingming.beauty.Utils.repeat;
 
 /**
  * Represents the information of a bar in a bar chart.

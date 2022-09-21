@@ -1,4 +1,4 @@
-package org.abei.beauty;
+package io.github.xumingming.beauty;
 
 import java.time.Duration;
 import java.util.List;
@@ -6,7 +6,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import static org.abei.beauty.Utils.duration;
+import static io.github.xumingming.beauty.Utils.duration;
 
 public class BarChart<T>
 {

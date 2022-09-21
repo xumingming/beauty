@@ -1,4 +1,4 @@
-package org.abei.beauty;
+package io.github.xumingming.beauty;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -11,10 +11,9 @@ import java.util.TimeZone;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static org.abei.beauty.Color.colorWith;
-import static org.abei.beauty.Column.column;
-import static org.abei.beauty.Utils.padEnd;
-import static org.abei.beauty.Utils.percentage;
+import static io.github.xumingming.beauty.Column.column;
+import static io.github.xumingming.beauty.Utils.padEnd;
+import static io.github.xumingming.beauty.Utils.percentage;
 
 public class Beauty
 {
@@ -85,7 +84,7 @@ public class Beauty
             headline.append(padEnd(column.getName(), maxColumnWidth.get(i), ' ')).append(COLUMN_SEPARATOR);
         }
         headline.append("\n");
-        ret.append(colorWith(headline, headColor));
+        ret.append(Color.colorWith(headline, headColor));
 
         // draw the dash line
         StringBuilder dashline = new StringBuilder();
@@ -93,7 +92,7 @@ public class Beauty
             dashline.append(padEnd("", maxColumnWidth.get(i), '-')).append(COLUMN_SEPARATOR);
         }
         dashline.append("\n");
-        ret.append(colorWith(dashline.toString(), headColor));
+        ret.append(Color.colorWith(dashline.toString(), headColor));
 
         for (T item : items) {
             StringBuilder contentLine = new StringBuilder();
@@ -118,7 +117,7 @@ public class Beauty
                 lineColor = contentLineColorProvider.apply(item);
             }
 
-            ret.append(colorWith(contentLine.toString(), lineColor));
+            ret.append(Color.colorWith(contentLine.toString(), lineColor));
         }
 
         return ret.toString();
@@ -148,9 +147,9 @@ public class Beauty
             }
 
             // the name
-            ret.append(colorWith(padEnd(column.getName(), nameWidth.get(), ' '), nameColor)).append(": ");
+            ret.append(Color.colorWith(padEnd(column.getName(), nameWidth.get(), ' '), nameColor)).append(": ");
             // the value
-            ret.append(colorWith(column.getExtractor().apply(item), column.getColor(item))).append("\n");
+            ret.append(Color.colorWith(column.getExtractor().apply(item), column.getColor(item))).append("\n");
         }
 
         return ret.toString();
@@ -177,10 +176,10 @@ public class Beauty
                         .sorted(Comparator.comparing(BarItem<T>::getPercentage).reversed())
                         .collect(Collectors.toList()),
                 Arrays.asList(
-                        column("Name", (BarItem<T> barItem) -> barItem.getName()),
-                        column("Value", (BarItem<T> barItem) -> barChart.getValueFormatter().apply(barItem.getValue())),
-                        column("Percentage", (BarItem<T> barItem) -> percentage(barItem.getPercentage())),
-                        column("Bar", (BarItem<T> barItem) -> barItem.getBar())),
+                        Column.column("Name", (BarItem<T> barItem) -> barItem.getName()),
+                        Column.column("Value", (BarItem<T> barItem) -> barChart.getValueFormatter().apply(barItem.getValue())),
+                        Column.column("Percentage", (BarItem<T> barItem) -> percentage(barItem.getPercentage())),
+                        Column.column("Bar", (BarItem<T> barItem) -> barItem.getBar())),
                 colorProvider);
     }
 
