@@ -1,6 +1,6 @@
 ## Beauty
 
-Beauty: beautiful things for the console.
+Beauty: beautiful things in the console.
 
 I often have the needs to display some structured information in command line,
 e.g. display some list of items as a table, display a bar chart etc, so I write a small piece of code to make 
