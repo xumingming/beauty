@@ -63,4 +63,4 @@ String str = barChart(BarChart.intBarChart(Arrays.asList(
 System.out.println(str);
 ```
 
-For more complete example, check out `src/test/org/abei/beauty/BeautyTest.java`
+For more complete example, check out `src/test/java/io/github/xumingming/beauty/BeautyTest.java`
