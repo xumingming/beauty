@@ -1,7 +1,9 @@
 package io.github.xumingming.beauty;
 
 import java.time.Duration;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -25,7 +27,7 @@ public class BarChart<T>
         barChart.setValueAccumulator((Integer x, Integer y) -> x + y);
         barChart.setValueDivider((x, y) -> x * 1.0 / y);
         barChart.setValueIdentitySupplier(() -> 0);
-        barChart.setColorProvider((BarItem<Integer> x) -> Beauty.getColorByHash(x.getName()));
+        barChart.setColorProvider(new DefaultColorProvider<>());
 
         return barChart;
     }
@@ -37,7 +39,7 @@ public class BarChart<T>
         barChart.setValueAccumulator((Long x, Long y) -> x + y);
         barChart.setValueDivider((x, y) -> x * 1.0 / y);
         barChart.setValueIdentitySupplier(() -> 0L);
-        barChart.setColorProvider((BarItem<Long> x) -> Beauty.getColorByHash(x.getName()));
+        barChart.setColorProvider(new DefaultColorProvider<>());
 
         return barChart;
     }
@@ -50,9 +52,35 @@ public class BarChart<T>
         barChart.setValueDivider((x, y) -> x.toMillis() * 1.0 / y.toMillis());
         barChart.setValueIdentitySupplier(() -> Duration.ZERO);
         barChart.setValueFormatter(x -> duration(x));
-        barChart.setColorProvider((BarItem<Duration> x) -> Beauty.getColorByHash(x.getName()));
+        barChart.setColorProvider(new DefaultColorProvider<>());
 
         return barChart;
+    }
+
+    private static class DefaultColorProvider<T>
+            implements Function<BarItem<T>, Color>
+    {
+        private Set<Color> usedColors = new HashSet<>();
+
+        @Override
+        public Color apply(BarItem<T> barItem)
+        {
+            String colorKey = barItem.getName();
+            Color candidateColor = Beauty.getColorByHash(colorKey);
+            // 最多尝试5次去找不同的颜色
+            for (int i = 0; i < 5; i++) {
+                if (!usedColors.contains(candidateColor)) {
+                    usedColors.add(candidateColor);
+                    return candidateColor;
+                }
+                else {
+                    colorKey = colorKey + "1";
+                    candidateColor = Beauty.getColorByHash(colorKey);
+                }
+            }
+
+            return candidateColor;
+        }
     }
 
     public List<BarItem<T>> getItems()
