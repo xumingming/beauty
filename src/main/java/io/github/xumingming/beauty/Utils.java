@@ -30,19 +30,25 @@ public class Utils
         if (days > 0) {
             parts.add(timeAndUnit(days, "d"));
         }
-        int hours = duration.toHoursPart();
+
+        int hours = (int) (duration.toHours() % 24);
         if (hours > 0 || !parts.isEmpty()) {
             parts.add(timeAndUnit(hours, "h"));
         }
-        int minutes = duration.toMinutesPart();
+        int minutes = (int) (duration.toMinutes() % 60);
         if (minutes > 0 || !parts.isEmpty()) {
             parts.add(timeAndUnit(minutes, "m"));
         }
-        int seconds = duration.toSecondsPart();
-        parts.add(timeAndUnit(seconds, "s"));
 
-        int millis = duration.toMillisPart();
-        parts.add(timeAndUnit(millis, "ms"));
+        int seconds = (int) (duration.getSeconds() % 60);
+        if (seconds > 0) {
+            parts.add(timeAndUnit(seconds, "s"));
+        }
+
+        int millis = duration.getNano() / 1000_000;
+        if (millis > 0) {
+            parts.add(timeAndUnit(millis, "ms"));
+        }
         return String.join(" ", parts);
     }
 

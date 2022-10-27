@@ -11,9 +11,11 @@ import java.util.TimeZone;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static io.github.xumingming.beauty.Color.colorWith;
 import static io.github.xumingming.beauty.Column.column;
 import static io.github.xumingming.beauty.Utils.padEnd;
 import static io.github.xumingming.beauty.Utils.percentage;
+import static java.lang.String.format;
 
 public class Beauty
 {
@@ -125,7 +127,7 @@ public class Beauty
 
     public static <T> String detail(T item, List<Column<T>> columns)
     {
-        return detail(item, columns, Color.GRAY);
+        return detail(item, columns, Color.WHITE);
     }
 
     public static <T> String detail(T item, List<Column<T>> columns, Color nameColor)
@@ -181,6 +183,51 @@ public class Beauty
                         Column.column("Percentage", (BarItem<T> barItem) -> percentage(barItem.getPercentage())),
                         Column.column("Bar", (BarItem<T> barItem) -> barItem.getBar())),
                 colorProvider);
+    }
+
+    public static void draw(String str)
+    {
+        System.out.println(str);
+    }
+
+    public static void drawError(String str)
+    {
+        draw(str, Color.RED);
+    }
+
+    public static void draw(String str, Color color)
+    {
+        System.out.println(colorWith(str, color));
+    }
+
+    public static int extractIntFromString(String str)
+    {
+        return Integer.parseInt(str.replaceAll("[^0-9]", ""));
+    }
+
+    public static void drawH1Title(String title)
+    {
+        draw(colorWith(format("==== %s ====", title), Color.YELLOW));
+    }
+
+    public static void drawH2Title(String title)
+    {
+        draw(colorWith(format("== %s ==", title), Color.YELLOW));
+    }
+
+    public static <T> void drawBarChart(BarChart<T> barChart)
+    {
+        draw(Beauty.barChart(barChart));
+    }
+
+    public static <T> void drawTable(List<T> items, List<Column<T>> columns)
+    {
+        draw(Beauty.table(items, columns));
+    }
+
+    public static <T> void drawDetail(T item, List<Column<T>> columns)
+    {
+        draw(detail(item, columns));
     }
 
     public static final Color getColorByHash(Object object)
