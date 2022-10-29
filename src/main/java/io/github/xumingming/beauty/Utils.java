@@ -15,6 +15,10 @@ public class Utils
 
     public static String dataSize(DataSize dataSize)
     {
+        if (dataSize == null) {
+            return "0B";
+        }
+
         long v = dataSize.toBytes();
         if (v < 1024) {
             return v + "B";
@@ -25,6 +29,10 @@ public class Utils
 
     public static String duration(Duration duration)
     {
+        if (duration == null) {
+            return "0s";
+        }
+
         List<String> parts = new ArrayList<>();
         long days = duration.toDays();
         if (days > 0) {

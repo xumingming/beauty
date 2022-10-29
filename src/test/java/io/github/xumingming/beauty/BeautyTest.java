@@ -2,9 +2,14 @@ package io.github.xumingming.beauty;
 
 import org.junit.Test;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import static io.github.xumingming.beauty.BarChart.durationBarChart;
+import static io.github.xumingming.beauty.Beauty.barChartAsString;
+import static io.github.xumingming.beauty.Beauty.draw;
 import static org.junit.Assert.assertEquals;
 
 public class BeautyTest
@@ -18,24 +23,38 @@ public class BeautyTest
                         Column.column("Name", (Person p) -> p.getName()),
                         Column.column("Age", (Person p) -> p.getAge()),
                         Column.column("Gender", (Person p) -> p.isMale() ? "Male" : "Female")),
-                x -> Color.NONE,
                 Color.NONE);
 
         System.out.println(str);
         assertEquals(
-                "Name    Age  Gender  \n" +
-                        "------  ---  ------  \n" +
-                        "james   10   Male    \n" +
-                        "bond    20   Male    \n" +
-                        "john    30   Male    \n" +
-                        "jack    40   Male    \n" +
-                        "lee     50   Male    \n" +
-                        "steven  60   Male    \n" +
-                        "lily    70   Female  \n" +
-                        "lucy    80   Female  \n" +
-                        "rachel  90   Female  \n" +
-                        "grace   100  Female  \n",
+                "┌────────┬─────┬────────┐\n" +
+                        "│ Name   │ Age │ Gender │\n" +
+                        "├────────┼─────┼────────┤\n" +
+                        "│ james  │ 10  │ Male   │\n" +
+                        "│ bond   │ 20  │ Male   │\n" +
+                        "│ john   │ 30  │ Male   │\n" +
+                        "│ jack   │ 40  │ Male   │\n" +
+                        "│ lee    │ 50  │ Male   │\n" +
+                        "│ steven │ 60  │ Male   │\n" +
+                        "│ lily   │ 70  │ Female │\n" +
+                        "│ lucy   │ 80  │ Female │\n" +
+                        "│ rachel │ 90  │ Female │\n" +
+                        "│ grace  │ 100 │ Female │\n" +
+                        "└────────┴─────┴────────┘\n",
                 str);
+    }
+
+    @Test
+    public void testClickHouseTable()
+    {
+        String str = Beauty.table(
+                persons(),
+                Arrays.asList(
+                        Column.column("Name", (Person p) -> p.getName()),
+                        Column.column("Age", (Person p) -> p.getAge()),
+                        Column.column("Gender", (Person p) -> p.isMale() ? "Male" : "Female")));
+
+        System.out.println(str);
     }
 
     @Test
@@ -60,18 +79,32 @@ public class BeautyTest
     @Test
     public void testBarChart()
     {
-        String str = Beauty.barChart(BarChart.intBarChart(Arrays.asList(
+        BarChart<Integer> barChart = BarChart.intBarChart(Arrays.asList(
                 new BarItem<>("Male", persons().stream().mapToInt(x -> x.isMale() ? 1 : 0).sum()),
-                new BarItem<>("Female", persons().stream().mapToInt(x -> x.isMale() ? 0 : 1).sum()))));
+                new BarItem<>("Female", persons().stream().mapToInt(x -> x.isMale() ? 0 : 1).sum())));
+        barChart.setColorProvider(x -> Color.NONE);
+        String str = barChartAsString(barChart);
 
+        System.out.println(" == barchart == ");
         System.out.println(str);
-        assertEquals(
-                "\u001B[37;1mName    Value  Percentage  Bar                                                                                                   \n" +
-                        "\u001B[0m\u001B[37;1m------  -----  ----------  ----------------------------------------------------------------------------------------------------  \n" +
-                        "\u001B[0m\u001B[35mMale    6      60.00%      ████████████████████████████████████████████████████████████                                          \n" +
-                        "\u001B[0m\u001B[32mFemale  4      40.00%      ████████████████████████████████████████                                                              \n" +
-                        "\u001B[0m",
+        assertEquals("┌────────┬───────┬────────────┬──────────────────────────────────────────────────────────────┐\n" +
+                        "│ Name   │ Value │ Percentage │ Bar                                                          │\n" +
+                        "├────────┼───────┼────────────┼──────────────────────────────────────────────────────────────┤\n" +
+                        "│ Male   │ 6     │ 60.00%     │ ████████████████████████████████████████████████████████████ │\n" +
+                        "│ Female │ 4     │ 40.00%     │ ████████████████████████████████████████                     │\n" +
+                        "└────────┴───────┴────────────┴──────────────────────────────────────────────────────────────┘\n",
                 str);
+    }
+
+    @Test
+    public void showBeautifulQueries()
+    {
+        BarChart<Duration> barChart = durationBarChart(queries()
+                .stream()
+                .map(q -> new BarItem<Duration>(q.getQueryName(), q.getElapseTime()))
+                .collect(Collectors.toList()));
+
+        draw(barChartAsString(barChart));
     }
 
     private List<Person> persons()
@@ -119,6 +152,51 @@ public class BeautyTest
         public boolean isMale()
         {
             return male;
+        }
+    }
+
+    private List<Query> queries()
+    {
+        return Arrays.asList(
+                new Query("q1", Duration.ofSeconds(60)),
+                new Query("q2", Duration.ofSeconds(70)),
+                new Query("q3", Duration.ofSeconds(80)),
+                new Query("q4", Duration.ofSeconds(90)),
+                new Query("q5", Duration.ofSeconds(40)),
+                new Query("q6", Duration.ofSeconds(50)),
+                new Query("q7", Duration.ofSeconds(70)),
+                new Query("q8", Duration.ofSeconds(30)));
+    }
+
+    public static class Query
+    {
+        private String queryName;
+        private Duration elapseTime;
+
+        public Query(String queryName, Duration elapseTime)
+        {
+            this.queryName = queryName;
+            this.elapseTime = elapseTime;
+        }
+
+        public String getQueryName()
+        {
+            return queryName;
+        }
+
+        public void setQueryName(String queryName)
+        {
+            this.queryName = queryName;
+        }
+
+        public Duration getElapseTime()
+        {
+            return elapseTime;
+        }
+
+        public void setElapseTime(Duration elapseTime)
+        {
+            this.elapseTime = elapseTime;
         }
     }
 }

@@ -39,27 +39,153 @@ public class Beauty
 
     public static <T> String table(List<T> items, List<Column<T>> columns)
     {
-        return table(items, columns, x -> Color.NONE);
+        return table(items, columns, Color.WHITE);
     }
 
-    public static <T> String table(List<T> items,
-            List<Column<T>> columns,
-            Function<T, Color> contentLineColorProvider)
+    public static <T> String table(List<T> items, List<Column<T>> columns, Color headColor)
     {
-        return table(items, columns, contentLineColorProvider, Color.WHITE);
+        return table(items, columns, headColor, TableStyle.CLICKHOUSE);
     }
 
-    public static <T> String table(List<T> items,
+    public static <T> String table(List<T> items, List<Column<T>> columns, Color headColor, TableStyle tableStyle)
+    {
+        if (tableStyle == TableStyle.SIMPLE) {
+            return simpleTable(items, columns, headColor);
+        }
+        else {
+            return clickHouseTable(items, columns, headColor);
+        }
+    }
+
+    private static <T> String simpleTable(List<T> items,
             List<Column<T>> columns,
-            Function<T, Color> contentLineColorProvider,
             Color headColor)
     {
-        // 先遍历一遍数据，获取数据的width
+        List<Integer> maxColumnWidth = calculateColumnWidth(items, columns);
+
+        // draw the headline
+        StringBuilder ret = new StringBuilder();
+
+        StringBuilder headline = new StringBuilder();
+        for (int i = 0; i < columns.size(); i++) {
+            Column<T> column = columns.get(i);
+            headline.append(padEnd(column.getName(), maxColumnWidth.get(i), ' ')).append(COLUMN_SEPARATOR);
+        }
+        headline.append("\n");
+        ret.append(colorWith(headline, headColor));
+
+        // draw the boundary line
+        StringBuilder boundaryLine = new StringBuilder();
+        for (int i = 0; i < columns.size(); i++) {
+            boundaryLine.append(padEnd("", maxColumnWidth.get(i), '-')).append(COLUMN_SEPARATOR);
+        }
+        boundaryLine.append("\n");
+        ret.append(colorWith(boundaryLine.toString(), headColor));
+
+        for (T item : items) {
+            StringBuilder contentLine = new StringBuilder();
+            for (int i = 0; i < columns.size(); i++) {
+                Column<T> column = columns.get(i);
+                Object content = formatTableCell(item, column);
+
+                Color cellColor = getCellColor(item, column);
+                contentLine.append(colorWith(padEnd(content.toString(), maxColumnWidth.get(i), ' '), cellColor))
+                        .append(COLUMN_SEPARATOR);
+            }
+            contentLine.append("\n");
+
+            ret.append(contentLine);
+        }
+
+        return ret.toString();
+    }
+
+    private static <T> String formatTableCell(T item, Column<T> column)
+    {
+        Object content = column.getExtractor().apply(item);
+
+        if (content instanceof Date && content != null) {
+            content = SHORT_DATE_FORMAT.format(content);
+        }
+
+        if (content == null) {
+            content = "-";
+        }
+        return content.toString();
+    }
+
+    public static <T> String clickHouseTable(List<T> items, List<Column<T>> columns, Color headColor)
+    {
+        List<Integer> maxColumnWidth = calculateColumnWidth(items, columns);
+
+        // draw the headline
+        StringBuilder ret = new StringBuilder();
+        // draw the UPPER boundary line
+        ret.append(colorWith(getUpperBoundaryLine(maxColumnWidth), headColor));
+
+        StringBuilder headline = new StringBuilder();
+        for (int i = 0; i < columns.size(); i++) {
+            Column<T> column = columns.get(i);
+            headline.append(colorWith("│ ", headColor))
+                    .append(colorWith(padEnd(column.getName(), maxColumnWidth.get(i), ' '), headColor));
+            if (i == columns.size() - 1) {
+                headline.append(colorWith(" │", headColor));
+            }
+            else {
+                headline.append(" ");
+            }
+        }
+        headline.append("\n");
+        ret.append(colorWith(headline, headColor));
+
+        // draw the MIDDLE boundary line
+        ret.append(colorWith(getMiddleBoundaryLine(columns, maxColumnWidth), headColor));
+
+        for (T item : items) {
+            StringBuilder contentLine = new StringBuilder();
+            for (int i = 0; i < columns.size(); i++) {
+                Column<T> column = columns.get(i);
+                String content = formatTableCell(item, column);
+
+                if (i < columns.size()) {
+                    contentLine.append(colorWith("│", headColor));
+                }
+                Color cellColor = getCellColor(item, column);
+
+                contentLine.append(colorWith(padEnd(" " + content, maxColumnWidth.get(i) + 2, ' '), cellColor));
+                if (i == columns.size() - 1) {
+                    contentLine.append(colorWith("│", headColor));
+                }
+            }
+            contentLine.append("\n");
+
+            ret.append(contentLine);
+        }
+
+        // draw the BOTTOM boundary line
+        ret.append(colorWith(getBottomBoundaryLine(columns, maxColumnWidth), headColor));
+
+        return ret.toString();
+    }
+
+    private static <T> Color getCellColor(T item, Column<T> column)
+    {
+        Color cellColor = Color.NONE;
+        if (column.getColor(item) != null) {
+            cellColor = column.getColor(item);
+        }
+        return cellColor;
+    }
+
+    private static <T> List<Integer> calculateColumnWidth(List<T> items, List<Column<T>> columns)
+    {
+        // 遍历一遍column名字
         List<Integer> maxColumnWidth = new ArrayList<>();
         for (int i = 0; i < columns.size(); i++) {
             maxColumnWidth.add(columns.get(i).getName().length());
         }
 
+        // 遍历一遍数据
         for (T item : items) {
             for (int i = 0; i < columns.size(); i++) {
                 Column<T> column = columns.get(i);
@@ -76,53 +202,41 @@ public class Beauty
                 maxColumnWidth.set(i, Math.max(maxColumnWidth.get(i), content.toString().length()));
             }
         }
+        return maxColumnWidth;
+    }
 
-        // draw the headline
-        StringBuilder ret = new StringBuilder();
-
-        StringBuilder headline = new StringBuilder();
-        for (int i = 0; i < columns.size(); i++) {
-            Column<T> column = columns.get(i);
-            headline.append(padEnd(column.getName(), maxColumnWidth.get(i), ' ')).append(COLUMN_SEPARATOR);
-        }
-        headline.append("\n");
-        ret.append(Color.colorWith(headline, headColor));
-
-        // draw the dash line
-        StringBuilder dashline = new StringBuilder();
-        for (int i = 0; i < columns.size(); i++) {
-            dashline.append(padEnd("", maxColumnWidth.get(i), '-')).append(COLUMN_SEPARATOR);
-        }
-        dashline.append("\n");
-        ret.append(Color.colorWith(dashline.toString(), headColor));
-
-        for (T item : items) {
-            StringBuilder contentLine = new StringBuilder();
-            for (int i = 0; i < columns.size(); i++) {
-                Column<T> column = columns.get(i);
-                Object content = column.getExtractor().apply(item);
-
-                if (content instanceof Date && content != null) {
-                    content = SHORT_DATE_FORMAT.format(content);
-                }
-
-                if (content == null) {
-                    content = "-";
-                }
-
-                contentLine.append(padEnd(content.toString(), maxColumnWidth.get(i), ' '))
-                        .append(COLUMN_SEPARATOR);
+    private static <T> String getBoundaryLine(List<Integer> maxColumnWidth, char leftChar, char middleChar, char rightChar)
+    {
+        StringBuilder boundaryLine = new StringBuilder();
+        for (int i = 0; i < maxColumnWidth.size(); i++) {
+            if (i == 0) {
+                boundaryLine.append(leftChar);
             }
-            contentLine.append("\n");
-            Color lineColor = Color.NONE;
-            if (contentLineColorProvider != null) {
-                lineColor = contentLineColorProvider.apply(item);
+            boundaryLine.append(padEnd("", maxColumnWidth.get(i) + 2, '─'));
+            if (i < maxColumnWidth.size() - 1) {
+                boundaryLine.append(middleChar);
             }
-
-            ret.append(Color.colorWith(contentLine.toString(), lineColor));
+            else {
+                boundaryLine.append(rightChar);
+            }
         }
+        boundaryLine.append("\n");
+        return boundaryLine.toString();
+    }
 
-        return ret.toString();
+    private static <T> String getUpperBoundaryLine(List<Integer> maxColumnWidth)
+    {
+        return getBoundaryLine(maxColumnWidth, '┌', '┬', '┐');
+    }
+
+    private static <T> String getMiddleBoundaryLine(List<Column<T>> columns, List<Integer> maxColumnWidth)
+    {
+        return getBoundaryLine(maxColumnWidth, '├', '┼', '┤');
+    }
+
+    private static <T> String getBottomBoundaryLine(List<Column<T>> columns, List<Integer> maxColumnWidth)
+    {
+        return getBoundaryLine(maxColumnWidth, '└', '┴', '┘');
     }
 
     public static <T> String detail(T item, List<Column<T>> columns)
@@ -157,7 +271,7 @@ public class Beauty
         return ret.toString();
     }
 
-    public static <T> String barChart(BarChart<T> barChart)
+    public static <T> String barChartAsString(BarChart<T> barChart)
     {
         List<BarItem<T>> barItems = barChart.getItems();
         Function<BarItem<T>, Color> colorProvider = barChart.getColorProvider();
@@ -178,11 +292,11 @@ public class Beauty
                         .sorted(Comparator.comparing(BarItem<T>::getPercentage).reversed())
                         .collect(Collectors.toList()),
                 Arrays.asList(
-                        Column.column("Name", (BarItem<T> barItem) -> barItem.getName()),
-                        Column.column("Value", (BarItem<T> barItem) -> barChart.getValueFormatter().apply(barItem.getValue())),
-                        Column.column("Percentage", (BarItem<T> barItem) -> percentage(barItem.getPercentage())),
-                        Column.column("Bar", (BarItem<T> barItem) -> barItem.getBar())),
-                colorProvider);
+                        column("Name", (BarItem<T> barItem) -> barItem.getName(), colorProvider),
+                        column("Value", (BarItem<T> barItem) -> barChart.getValueFormatter().apply(barItem.getValue()), colorProvider),
+                        column("Percentage", (BarItem<T> barItem) -> percentage(barItem.getPercentage()), colorProvider),
+                        column("Bar", (BarItem<T> barItem) -> barItem.getBar(), colorProvider)),
+                Color.NONE);
     }
 
     public static void draw(String str)
@@ -213,21 +327,6 @@ public class Beauty
     public static void drawH2Title(String title)
     {
         draw(colorWith(format("== %s ==", title), Color.YELLOW));
-    }
-
-    public static <T> void drawBarChart(BarChart<T> barChart)
-    {
-        draw(Beauty.barChart(barChart));
-    }
-
-    public static <T> void drawTable(List<T> items, List<Column<T>> columns)
-    {
-        draw(Beauty.table(items, columns));
-    }
-
-    public static <T> void drawDetail(T item, List<Column<T>> columns)
-    {
-        draw(detail(item, columns));
     }
 
     public static final Color getColorByHash(Object object)

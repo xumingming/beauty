@@ -57,32 +57,6 @@ public class BarChart<T>
         return barChart;
     }
 
-    private static class DefaultColorProvider<T>
-            implements Function<BarItem<T>, Color>
-    {
-        private Set<Color> usedColors = new HashSet<>();
-
-        @Override
-        public Color apply(BarItem<T> barItem)
-        {
-            String colorKey = barItem.getName();
-            Color candidateColor = Beauty.getColorByHash(colorKey);
-            // 最多尝试5次去找不同的颜色
-            for (int i = 0; i < 5; i++) {
-                if (!usedColors.contains(candidateColor)) {
-                    usedColors.add(candidateColor);
-                    return candidateColor;
-                }
-                else {
-                    colorKey = colorKey + "1";
-                    candidateColor = Beauty.getColorByHash(colorKey);
-                }
-            }
-
-            return candidateColor;
-        }
-    }
-
     public List<BarItem<T>> getItems()
     {
         return items;
@@ -141,5 +115,31 @@ public class BarChart<T>
     public void setValueFormatter(Function<T, String> valueFormatter)
     {
         this.valueFormatter = valueFormatter;
+    }
+
+    private static class DefaultColorProvider<T>
+            implements Function<BarItem<T>, Color>
+    {
+        private Set<Color> usedColors = new HashSet<>();
+
+        @Override
+        public Color apply(BarItem<T> barItem)
+        {
+            String colorKey = barItem.getName();
+            Color candidateColor = Beauty.getColorByHash(colorKey);
+            // 最多尝试5次去找不同的颜色
+            for (int i = 0; i < 5; i++) {
+                if (!usedColors.contains(candidateColor)) {
+                    usedColors.add(candidateColor);
+                    return candidateColor;
+                }
+                else {
+                    colorKey = colorKey + "1";
+                    candidateColor = Beauty.getColorByHash(colorKey);
+                }
+            }
+
+            return candidateColor;
+        }
     }
 }

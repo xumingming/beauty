@@ -49,8 +49,6 @@ public class BarItem<T>
     public String getBar()
     {
         int barCount = (int) (percentage * 100);
-        int blankCount = 100 - barCount;
-        return repeat("█", barCount)
-                + repeat(" ", blankCount);
+        return repeat("█", barCount);
     }
 }
