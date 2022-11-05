@@ -126,10 +126,10 @@ public class Beauty
         StringBuilder headline = new StringBuilder();
         for (int i = 0; i < columns.size(); i++) {
             Column<T> column = columns.get(i);
-            headline.append(colorWith("│ ", headColor))
+            headline.append(colorWith("┃ ", headColor))
                     .append(colorWith(padEnd(column.getName(), maxColumnWidth.get(i), ' '), headColor));
             if (i == columns.size() - 1) {
-                headline.append(colorWith(" │", headColor));
+                headline.append(colorWith(" ┃", headColor));
             }
             else {
                 headline.append(" ");
@@ -205,14 +205,14 @@ public class Beauty
         return maxColumnWidth;
     }
 
-    private static <T> String getBoundaryLine(List<Integer> maxColumnWidth, char leftChar, char middleChar, char rightChar)
+    private static <T> String getBoundaryLine(List<Integer> maxColumnWidth, char leftChar, char middleChar, char rightChar, char horizontalChar)
     {
         StringBuilder boundaryLine = new StringBuilder();
         for (int i = 0; i < maxColumnWidth.size(); i++) {
             if (i == 0) {
                 boundaryLine.append(leftChar);
             }
-            boundaryLine.append(padEnd("", maxColumnWidth.get(i) + 2, '─'));
+            boundaryLine.append(padEnd("", maxColumnWidth.get(i) + 2, horizontalChar));
             if (i < maxColumnWidth.size() - 1) {
                 boundaryLine.append(middleChar);
             }
@@ -226,17 +226,17 @@ public class Beauty
 
     private static <T> String getUpperBoundaryLine(List<Integer> maxColumnWidth)
     {
-        return getBoundaryLine(maxColumnWidth, '┌', '┬', '┐');
+        return getBoundaryLine(maxColumnWidth, '┏', '┳', '┓', '━');
     }
 
     private static <T> String getMiddleBoundaryLine(List<Column<T>> columns, List<Integer> maxColumnWidth)
     {
-        return getBoundaryLine(maxColumnWidth, '├', '┼', '┤');
+        return getBoundaryLine(maxColumnWidth, '┡', '╇', '┩', '━');
     }
 
     private static <T> String getBottomBoundaryLine(List<Column<T>> columns, List<Integer> maxColumnWidth)
     {
-        return getBoundaryLine(maxColumnWidth, '└', '┴', '┘');
+        return getBoundaryLine(maxColumnWidth, '└', '┴', '┘', '─');
     }
 
     public static <T> String detail(T item, List<Column<T>> columns)
